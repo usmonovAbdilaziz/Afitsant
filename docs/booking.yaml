@@ -1,0 +1,434 @@
+paths:
+  /api/v1/booking/client:
+    post:
+      tags: [Booking]
+      summary: Create booking for authenticated client
+      description: |
+        Creates a booking with one or more booking items. If the same `idempotencyKey`
+        is reused, the server returns the already-created booking instead of creating a duplicate.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClientBookingRequest'
+            examples:
+              default:
+                value:
+                  tableId: tbl_123
+                  note: 'Limonli choy va ovqat'
+                  idempotencyKey: '550e8400-e29b-41d4-a716-446655440000'
+                  items:
+                    - productId: srv_tea
+                      qty: 2
+                      note: 'Qora choy'
+                    - productId: srv_food
+                      qty: 1
+      responses:
+        201:
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/BookingDTO'
+        400:
+          $ref: '#/components/responses/ValidationError'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        409:
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/booking/client/{clientId}:
+    get:
+      tags: [Booking]
+      summary: Get bookings for a client
+      description: Requester must be the same client or an ADMIN.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/BookingStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/SizeQuery'
+      responses:
+        200:
+          description: Paginated client bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/PaginatedBookingList'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/booking/business/{businessId}:
+    get:
+      tags: [Booking]
+      summary: Get bookings for a business
+      description: Requester must be BUSINESS with matching businessId or ADMIN.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/BookingStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/SizeQuery'
+      responses:
+        200:
+          description: Paginated business bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/PaginatedBookingList'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/booking/staff/{staffId}:
+    get:
+      tags: [Booking]
+      summary: Get bookings for staff
+      description: Requester must be STAFF with matching staffId or ADMIN.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/BookingStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/SizeQuery'
+      responses:
+        200:
+          description: Paginated staff bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/PaginatedBookingList'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/booking/staff:
+    get:
+      tags: [Booking]
+      summary: Get bookings by staff role
+      description: |
+        Staff authenticates with their staff token and provides their position
+        via the `type` query parameter.
+
+        **Role-based access:**
+        - `MANAGER` / `CASHIER` → see **all** bookings for their business
+        - Other roles (`WAITER`, `WAITRESS`, `COOK`, `BARISTA`, `HOST`, `HOSTESS`) → see only bookings **assigned to them**
+
+        When `bookingId` is provided, returns a direct lookup (single booking)
+        filtered by the same role-based access rules.
+      security:
+        - StaffBearerAuth: []
+      parameters:
+        - in: query
+          name: type
+          required: true
+          description: Staff position/role
+          schema:
+            type: string
+            enum:
+              [WAITER, WAITRESS, COOK, BARISTA, HOST, HOSTESS, MANAGER, CASHIER]
+        - in: query
+          name: bookingId
+          description: Optional booking ID for direct lookup
+          schema:
+            type: string
+        - in: query
+          name: phoneNumber
+          description: Optional phone number for customer search
+          schema:
+            type: string
+        - $ref: '#/components/parameters/BookingStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/SizeQuery'
+      responses:
+        200:
+          description: Paginated bookings filtered by staff role
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/PaginatedBookingList'
+        400:
+          $ref: '#/components/responses/ValidationError'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          description: Staff not found or inactive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  parameters:
+    BookingStatusQuery:
+      in: query
+      name: status
+      schema:
+        type: string
+        enum: [PENDING, CONFIRMED, CANCELLED, COMPLETED]
+    DateFromQuery:
+      in: query
+      name: dateFrom
+      schema:
+        type: string
+        format: date-time
+    DateToQuery:
+      in: query
+      name: dateTo
+      schema:
+        type: string
+        format: date-time
+    PageQuery:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    SizeQuery:
+      in: query
+      name: size
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+
+  schemas:
+    CreateClientBookingRequest:
+      type: object
+      required: [tableId, items]
+      properties:
+        tableId:
+          type: string
+        note:
+          type: string
+          nullable: true
+        idempotencyKey:
+          type: string
+          format: uuid
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/BookingItemInput'
+
+    BookingItemInput:
+      type: object
+      required: [productId, qty]
+      properties:
+        productId:
+          type: string
+        qty:
+          type: integer
+          minimum: 1
+        note:
+          type: string
+          nullable: true
+
+    BookingItemDTO:
+      type: object
+      required: [id, productId, qty, priceSnapshot, createdAt]
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        qty: { type: integer }
+        priceSnapshot: { type: number }
+        note: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        product:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+            price: { type: number }
+            businessId: { type: string }
+
+    ClientDTO:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        phoneNumber: { type: string, nullable: true }
+        username: { type: string, nullable: true }
+
+    StaffDTO:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        position: { type: string, nullable: true }
+        phoneNumber: { type: string }
+
+    TableDTO:
+      type: object
+      properties:
+        id: { type: string }
+        tableNumber: { type: integer }
+        tableColumns: { type: string, nullable: true }
+        businessId: { type: string }
+
+    ProductDTO:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        duration: { type: integer }
+        price: { type: number }
+        businessId: { type: string }
+
+    BookingDTO:
+      type: object
+      required:
+        [
+          id,
+          businessId,
+          clientId,
+          serviceId,
+          staffId,
+          tableId,
+          status,
+          priceStatus,
+          createdAt,
+          updatedAt,
+        ]
+      properties:
+        id: { type: string }
+        businessId: { type: string }
+        clientId: { type: string }
+        serviceId: { type: string }
+        staffId: { type: string }
+        tableId: { type: string }
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, CANCELLED, COMPLETED]
+        priceStatus:
+          $ref: '#/components/schemas/PriceStatus'
+        notes: { type: string, nullable: true }
+        idempotencyKey: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        client:
+          $ref: '#/components/schemas/ClientDTO'
+        service:
+          $ref: '#/components/schemas/ProductDTO'
+        staff:
+          $ref: '#/components/schemas/StaffDTO'
+        table:
+          $ref: '#/components/schemas/TableDTO'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingItemDTO'
+
+    PriceStatus:
+      type: string
+      enum: [PENDING, CANCELLED, COMPLETED]
+
+    Pagination:
+      type: object
+      required: [page, size, total, totalPages]
+      properties:
+        page: { type: integer, example: 1 }
+        size: { type: integer, example: 10 }
+        total: { type: integer, example: 24 }
+        totalPages: { type: integer, example: 3 }
+
+    PaginatedBookingList:
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/BookingDTO'
+
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message: { type: string }
+            errors:
+              type: array
+              items: { type: string }
+
+  responses:
+    ValidationError:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

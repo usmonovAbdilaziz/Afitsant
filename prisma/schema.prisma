@@ -1,0 +1,476 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String         @id @default(cuid())
+  email            String         @unique
+  phoneNumber      String         @unique
+  password         String
+  userType         UserType
+  fullName         String
+  profilePhoto     String?
+  telegramUsername String?
+  isVerified       Boolean        @default(false)
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  gender           Gender?
+  business         Business?
+  notifications    Notification[]
+  reports          Report[]
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([userType])
+}
+
+model Client {
+  id             String         @id @default(cuid())
+  phoneNumber    String         @unique
+  fullName       String
+  bookings       Booking[]
+  reviews        Review[]
+  username       String?
+  telegramUserId String?        @unique
+  languageCode   String?
+  orderSessions  OrderSession[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
+}
+
+model Business {
+  id             String          @id @default(cuid())
+  userId         String          @unique
+  businessName   String
+  businessType   String
+  description    String?
+  address        String
+  city           String
+  latitude       Float
+  longitude      Float
+  phone          String
+  isApproved     Boolean         @default(false)
+  profilePhoto   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  notification   String?
+  parentId       String?
+  parent         Business?       @relation("BusinessChildren", fields: [parentId], references: [id])
+  children       Business[]      @relation("BusinessChildren")
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentBusiness ParentBusiness?
+  reviews        Review[]
+  services       Service[]
+  staff          Staff[]
+  bookings       Booking[]
+  tables         Table[]
+  workingHours   WorkingHours[]
+
+  @@index([userId])
+  @@index([city])
+  @@index([businessType])
+  @@index([latitude, longitude])
+  @@index([parentId])
+}
+
+model Staff {
+  id           String              @id @default(cuid())
+  businessId   String
+  fullName     String
+  phoneNumber  String
+  position     String
+  profilePhoto String?
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  bookings     Booking[]
+  reviews      Review[]
+  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  services     StaffService[]
+  workingHours StaffWorkingHours[]
+
+  @@index([businessId])
+  @@index([isActive])
+}
+
+model Table {
+  id            String         @id @default(cuid())
+  tableNumber   Int
+  tableColumns  String?
+  businessId    String
+  status        TableStatus    @default(EMPTY)
+  bookings      Booking[]
+  orders        Order[]
+  orderSessions OrderSession[]
+  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tableId     String
+  bookingId   String?
+  status      OrderStatus @default(PENDING_CONFIRM)
+  totalPrice  Float       @default(0)
+  etaMinutes  Int?
+  description String?
+  telegramId  String?
+  phone       String?
+  items       OrderItem[]
+  table       Table       @relation(fields: [tableId], references: [id])
+  booking     Booking?    @relation(fields: [bookingId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  confirmedAt DateTime?
+  token       String?
+
+  @@index([tableId])
+  @@index([bookingId])
+  @@index([status])
+}
+
+model OrderItem {
+  id               String @id @default(cuid())
+  orderId          String
+  menuItemId       String
+  nameSnapshot     String
+  priceSnapshot    Float
+  qty              Int
+  prepTimeSnapshot Int    @default(0)
+  order            Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model WorkingHours {
+  id              String    @id @default(cuid())
+  businessId      String
+  dayOfWeek       DayOfWeek
+  startTime       String?
+  endTime         String?
+  dinnerStartTime String?
+  dinnerEndTime   String?
+  isActive        Boolean   @default(true)
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, dayOfWeek])
+  @@index([businessId])
+}
+
+model StaffWorkingHours {
+  id        String    @id @default(cuid())
+  staffId   String
+  dayOfWeek DayOfWeek
+  startTime String?
+  endTime   String?
+  isActive  Boolean   @default(true)
+  staff     Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, dayOfWeek])
+  @@index([staffId])
+}
+
+model Service {
+  id           String         @id @default(cuid())
+  businessId   String
+  name         String
+  category     Category
+  type         Type
+  description  String?
+  photoUrl     String?
+  color        String?
+  duration     Int
+  status       ServiceStatus  @default(PENDING)
+  liters       String[]       @default([])
+  price        Float
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  bookings     Booking[]
+  bookingItems BookingItem[]
+  business     Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  staff        StaffService[]
+
+  @@index([businessId])
+  @@index([isActive])
+  @@index([category])
+}
+
+model StaffService {
+  id        String  @id @default(cuid())
+  staffId   String
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  staff     Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, serviceId])
+  @@index([staffId])
+  @@index([serviceId])
+}
+
+model Booking {
+  id             String         @id @default(cuid())
+  businessId     String
+  clientId       String
+  serviceId      String
+  staffId        String
+  tableId        String
+  priceStatus    PriceStatus    @default(PENDING)
+  price          String         @default("0")
+  idempotencyKey String?        @unique
+  notes          String?
+  confirmedAt    DateTime?
+  confirmedByType String?
+  confirmedByName String?
+  confirmedByUserId String?
+  confirmedByStaffId String?
+  progressStatus BookingProgressStatus @default(PENDING)
+  readyForDeliveryAt DateTime?
+  deliveryClaimedAt DateTime?
+  deliveryAssignedStaffId String?
+  deliveryAssignedRole String?
+  deliveryAssignedName String?
+  deliveredAt DateTime?
+  deliveredByStaffId String?
+  deliveredByRole String?
+  deliveredByName String?
+  preparationDelayWarningSentAt DateTime?
+  deliveryClaimWarningSentAt DateTime?
+  orders         Order[]
+  items          BookingItem[]
+  status         BookingStatus  @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  client         Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service        Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  staff          Staff?         @relation(fields: [staffId], references: [id])
+  table          Table?         @relation(fields: [tableId], references: [id])
+  notifications  Notification[]
+  business       Business?      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([businessId])
+  @@index([tableId])
+  @@index([serviceId])
+  @@index([staffId])
+  @@index([status])
+  @@index([progressStatus])
+  @@index([createdAt])
+  @@index([readyForDeliveryAt])
+  @@index([deliveryAssignedStaffId])
+}
+
+model BookingItem {
+  id            String   @id @default(cuid())
+  bookingId     String
+  productId     String
+  qty           Int
+  priceSnapshot Float
+  durationSnapshot Int   @default(0)
+  note          String?
+  status        BookingItemStatus @default(PENDING)
+  responsiblePosition String?
+  startedAt     DateTime?
+  readyAt       DateTime?
+  preparedByStaffId String?
+  preparedByName String?
+  preparedByRole String?
+  createdAt     DateTime @default(now())
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  product       Service  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([productId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderSession {
+  id               String             @id @default(cuid())
+  tableId          String
+  clientId         String?
+  status           OrderSessionStatus @default(AWAITING_TELEGRAM)
+  telegramUserId   String?
+  telegramUsername String?
+  phone            String?
+  languageCode     String?
+  createdAt        DateTime           @default(now())
+  expiresAt        DateTime
+  verifiedAt       DateTime?
+  table            Table              @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  client           Client?            @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([tableId])
+  @@index([clientId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  clientId   String
+  businessId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  staffId    String?
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  staff      Staff?   @relation(fields: [staffId], references: [id])
+
+  @@unique([clientId, staffId])
+  @@index([businessId])
+  @@index([staffId])
+  @@index([rating])
+}
+
+model Notification {
+  id        String             @id @default(cuid())
+  userId    String
+  bookingId String?
+  type      NotificationType
+  status    NotificationStatus @default(PENDING)
+  subject   String
+  message   String
+  sentAt    DateTime?
+  error     String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  expiresAt DateTime?
+  booking   Booking?           @relation(fields: [bookingId], references: [id])
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  senderId  String
+  subject   String?
+  message   String
+  createdAt DateTime @default(now())
+
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+}
+
+model ParentBusiness {
+  id         String   @id @default(cuid())
+  businessId String   @unique
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+enum ServiceStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PriceStatus {
+  PENDING
+  CANCELLED
+  COMPLETED
+}
+
+enum Category {
+  FOODS
+  DRINKS
+  SWEETS
+  SALADS
+}
+
+enum Type {
+  HOT
+  COLD
+}
+
+enum UserType {
+  BUSINESS
+  ADMIN
+  CLIENT
+  STAFF
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum BookingProgressStatus {
+  PENDING
+  PREPARING
+  READY_FOR_DELIVERY
+  DELIVERING
+  DELIVERED
+  CANCELLED
+}
+
+enum BookingItemStatus {
+  PENDING
+  PREPARING
+  READY
+  CANCELLED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum OrderStatus {
+  PENDING_CONFIRM
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum OrderSessionStatus {
+  AWAITING_TELEGRAM
+  VERIFIED
+  EXPIRED
+}
+
+enum TableStatus {
+  BUSY
+  CLEANED
+  EMPTY
+}
+
+enum NotificationType {
+  EMAIL
+  SMS
+  TELEGRAM
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}

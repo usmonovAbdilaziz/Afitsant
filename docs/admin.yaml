@@ -1,0 +1,521 @@
+paths:
+  # ==================== USER MANAGEMENT ====================
+  /api/v1/admin/users:
+    get:
+      tags: [Admin - Users]
+      summary: Get all users
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/User' }
+
+  /api/v1/admin/users/{id}:
+    get:
+      tags: [Admin - Users]
+      summary: Get user by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: User data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/User' }
+
+    patch:
+      tags: [Admin - Users]
+      summary: Update user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string }
+                isActive: { type: boolean }
+      responses:
+        200:
+          description: User updated
+
+    delete:
+      tags: [Admin - Users]
+      summary: Delete user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: User deleted
+
+  /api/v1/admin/users/{userId}/make-admin:
+    post:
+      tags: [Admin - Users]
+      summary: Make user admin
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: User is now admin
+
+  /api/v1/admin/user-management/users/{userId}:
+    get:
+      tags: [Admin - Users]
+      summary: Get user details (advanced)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: User data
+
+  /api/v1/admin/user-management/users/{userId}/role:
+    post:
+      tags: [Admin - Users]
+      summary: Update user role
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { type: string, enum: [CLIENT, BUSINESS, ADMIN] }
+      responses:
+        200:
+          description: Role updated
+
+  /api/v1/admin/user-management/users/{userId}/disable:
+    post:
+      tags: [Admin - Users]
+      summary: Disable user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: User disabled
+
+  /api/v1/admin/user-management/users/{userId}/enable:
+    post:
+      tags: [Admin - Users]
+      summary: Enable user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: User enabled
+
+  # ==================== BUSINESS MANAGEMENT ====================
+  /api/v1/admin/businesses:
+    get:
+      tags: [Admin - Businesses]
+      summary: Get all businesses
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of businesses
+
+  /api/v1/admin/businesses/{id}:
+    get:
+      tags: [Admin - Businesses]
+      summary: Get business by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Business data
+
+    patch:
+      tags: [Admin - Businesses]
+      summary: Update business
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Business updated
+
+    delete:
+      tags: [Admin - Businesses]
+      summary: Delete business
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Business deleted
+
+  /api/v1/admin/businesses/{id}/approve:
+    patch:
+      tags: [Admin - Businesses]
+      summary: Update business approval status
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isApproved: { type: boolean }
+      responses:
+        200:
+          description: Approval status updated
+
+  # ==================== STAFF MANAGEMENT ====================
+  /api/v1/admin/staff:
+    get:
+      tags: [Admin - Staff]
+      summary: Get all staff
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of staff
+
+  /api/v1/admin/staff/{id}:
+    get:
+      tags: [Admin - Staff]
+      summary: Get staff by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Staff data
+
+    patch:
+      tags: [Admin - Staff]
+      summary: Update staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Staff updated
+
+    delete:
+      tags: [Admin - Staff]
+      summary: Delete staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Staff deleted
+
+  # ==================== SERVICE MANAGEMENT ====================
+  /api/v1/admin/services:
+    get:
+      tags: [Admin - Services]
+      summary: Get all services
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of services
+
+  /api/v1/admin/services/{id}:
+    get:
+      tags: [Admin - Services]
+      summary: Get service by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Service data
+
+    patch:
+      tags: [Admin - Services]
+      summary: Update service
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Service updated
+
+    delete:
+      tags: [Admin - Services]
+      summary: Delete service
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Service deleted
+
+  # ==================== BOOKING MANAGEMENT ====================
+  /api/v1/admin/bookings:
+    get:
+      tags: [Admin - Bookings]
+      summary: Get all bookings
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of bookings
+
+  /api/v1/admin/bookings/{id}:
+    get:
+      tags: [Admin - Bookings]
+      summary: Get booking by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Booking data
+
+    patch:
+      tags: [Admin - Bookings]
+      summary: Update booking
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Booking updated
+
+    delete:
+      tags: [Admin - Bookings]
+      summary: Delete booking
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Booking deleted
+
+  # ==================== REVIEW MANAGEMENT ====================
+  /api/v1/admin/reviews:
+    get:
+      tags: [Admin - Reviews]
+      summary: Get all reviews
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of reviews
+
+  /api/v1/admin/reviews/{id}:
+    get:
+      tags: [Admin - Reviews]
+      summary: Get review by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Review data
+
+    patch:
+      tags: [Admin - Reviews]
+      summary: Update review
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Review updated
+
+    delete:
+      tags: [Admin - Reviews]
+      summary: Delete review
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Review deleted
+
+  # ==================== NOTIFICATION MANAGEMENT ====================
+  /api/v1/admin/notifications:
+    get:
+      tags: [Admin - Notifications]
+      summary: Get all notifications
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of notifications
+
+  /api/v1/admin/notifications/{id}:
+    get:
+      tags: [Admin - Notifications]
+      summary: Get notification by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Notification data
+
+    patch:
+      tags: [Admin - Notifications]
+      summary: Update notification
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Notification updated
+
+    delete:
+      tags: [Admin - Notifications]
+      summary: Delete notification
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Notification deleted
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        phoneNumber: { type: string }
+        fullName: { type: string }
+        userType: { type: string, enum: [CLIENT, BUSINESS, ADMIN] }
+        profilePhoto: { type: string, nullable: true }
+        isVerified: { type: boolean }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }

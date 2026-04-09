@@ -1,0 +1,181 @@
+paths:
+  /api/v1/business:
+    get:
+      tags: [Business]
+      summary: Get all businesses
+      parameters:
+        - in: query
+          name: city
+          schema: { type: string }
+          description: Filter by city
+        - in: query
+          name: businessType
+          schema: { type: string }
+          description: Filter by business type
+      responses:
+        200:
+          description: List of businesses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Business' }
+
+  /api/v1/business/all:
+    get:
+      tags: [Business]
+      summary: Get all businesses (alias)
+      responses:
+        200:
+          description: List of businesses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Business' }
+
+  /api/v1/business/nearby:
+    get:
+      tags: [Business]
+      summary: Discover nearby businesses
+      parameters:
+        - in: query
+          name: latitude
+          schema: { type: number }
+          required: true
+        - in: query
+          name: longitude
+          schema: { type: number }
+          required: true
+        - in: query
+          name: radius
+          schema: { type: number }
+          description: Radius in km (default 5)
+      responses:
+        200:
+          description: Nearby businesses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Business' }
+
+  /api/v1/business/{id}:
+    get:
+      tags: [Business]
+      summary: Get business by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Business data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Business' }
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Business]
+      summary: Update business aksiya/notification
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notification: { type: string }
+      responses:
+        200:
+          description: Updated business
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Business' }
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  schemas:
+    Business:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        businessName: { type: string }
+        businessType: { type: string }
+        description: { type: string, nullable: true }
+        address: { type: string }
+        city: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+        phone: { type: string }
+        isApproved: { type: boolean }
+        profilePhoto: { type: string, nullable: true }
+        notification: { type: string, nullable: true }
+        parentId: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }

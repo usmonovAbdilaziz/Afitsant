@@ -1,0 +1,155 @@
+paths:
+  /api/v1/orders:
+    post:
+      tags: [Orders]
+      summary: Create new order
+      description: Create a new order for a table with items from the menu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+      responses:
+        200:
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      orderId: { type: string }
+                      telegramUrl:
+                        type: string
+                        description: Telegram bot URL to confirm the order
+        400:
+          description: Empty cart or invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  error: { type: string }
+
+  /api/v1/orders/client:
+    get:
+      tags: [Orders]
+      summary: Get client orders
+      description: Get all orders for a client by phone number. Requires authentication or phone query param.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: phone
+          schema: { type: string }
+          description: Phone number (fallback if not authenticated)
+      responses:
+        200:
+          description: List of client orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+
+  /api/v1/orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get order by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Order data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Order' }
+        404:
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  error: { type: string }
+
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        id: { type: string }
+        tableId: { type: string }
+        status:
+          type: string
+          enum: [PENDING_CONFIRM, CONFIRMED, CANCELLED, COMPLETED]
+        totalPrice: { type: number }
+        etaMinutes: { type: integer, description: Estimated time in minutes }
+        phone: { type: string, nullable: true }
+        telegramId: { type: string, nullable: true }
+        confirmedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    OrderItem:
+      type: object
+      properties:
+        id: { type: string }
+        orderId: { type: string }
+        menuItemId: { type: string }
+        nameSnapshot: { type: string, description: Name of the item at time of order }
+        priceSnapshot: { type: number, description: Price at time of order }
+        qty: { type: integer }
+        prepTimeSnapshot: { type: integer, description: Preparation time in minutes }
+
+    CreateOrder:
+      type: object
+      required: [tableId, items]
+      properties:
+        tableId:
+          type: string
+          description: ID of the table placing the order
+        items:
+          type: array
+          description: List of items in the order
+          items:
+            type: object
+            required: [serviceId, priceSnapshot, qty, service]
+            properties:
+              serviceId: { type: string }
+              priceSnapshot: { type: number }
+              qty: { type: integer, minimum: 1 }
+              service:
+                type: object
+                properties:
+                  name: { type: string }
+                  duration: { type: integer }
+              options:
+                type: object
+                properties:
+                  liter: { type: string, description: Volume in liters e.g. "0.5" }
+                  teaOptions:
+                    type: object
+                    properties:
+                      teaColor: { type: string }
+                      lemon: { type: boolean }

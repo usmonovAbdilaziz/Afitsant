@@ -1,0 +1,220 @@
+paths:
+  /api/v1/service:
+    get:
+      tags: [Service]
+      summary: Get services by filter
+      parameters:
+        - in: query
+          name: businessId
+          schema: { type: string }
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: isActive
+          schema: { type: boolean }
+        - in: query
+          name: minPrice
+          schema: { type: number }
+        - in: query
+          name: maxPrice
+          schema: { type: number }
+      responses:
+        200:
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Service' }
+
+    post:
+      tags: [Service]
+      summary: Create new service
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateService'
+      responses:
+        201:
+          description: Service created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Service' }
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/service/{id}:
+    get:
+      tags: [Service]
+      summary: Get service by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Service data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Service' }
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Service]
+      summary: Update service
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateService'
+      responses:
+        200:
+          description: Updated service
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Service' }
+
+    delete:
+      tags: [Service]
+      summary: Delete service
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Service deleted
+
+components:
+  schemas:
+    Service:
+      type: object
+      properties:
+        id: { type: string }
+        businessId: { type: string }
+        name: { type: string }
+        category: { type: string, enum: [FOODS, DRINKS, SWEETS, SALADS] }
+        type: { type: string, enum: [HOT, COLD] }
+        description: { type: string, nullable: true }
+        photoUrl: { type: string, nullable: true }
+        duration: { type: integer }
+        price: { type: number }
+        liters:
+          type: array
+          items: { type: string }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        staff:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              fullName: { type: string }
+              position: { type: string }
+
+    CreateService:
+      type: object
+      required: [businessId, name, duration, price]
+      properties:
+        businessId: { type: string }
+        name: { type: string, minLength: 2 }
+        category: { type: string }
+        type: { type: string, enum: [HOT, COLD] }
+        description: { type: string }
+        photoUrl: { type: string }
+        duration: { type: integer, minimum: 5 }
+        price: { type: number, minimum: 0 }
+        liters:
+          type: array
+          items: { type: string }
+        isActive: { type: boolean }
+        staffIds:
+          type: array
+          items: { type: string }
+
+    UpdateService:
+      type: object
+      properties:
+        name: { type: string }
+        category: { type: string }
+        type: { type: string, enum: [HOT, COLD] }
+        description: { type: string }
+        photoUrl: { type: string }
+        duration: { type: integer }
+        price: { type: number }
+        liters:
+          type: array
+          items: { type: string }
+        isActive: { type: boolean }
+        staffIds:
+          type: array
+          items: { type: string }
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }

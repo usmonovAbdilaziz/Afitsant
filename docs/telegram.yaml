@@ -1,0 +1,62 @@
+paths:
+  /api/telegram/webhook:
+    post:
+      tags: [Telegram]
+      summary: Receive Telegram webhook updates
+      description: |
+        Telegram bot webhook endpoint. If `TELEGRAM_WEBHOOK_SECRET` is configured,
+        requests must include the `x-telegram-bot-api-secret-token` header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Telegram update payload
+      responses:
+        200:
+          description: Webhook processed
+        401:
+          description: Invalid Telegram secret
+
+  /api/telegram/set-webhook:
+    post:
+      tags: [Telegram]
+      summary: Set Telegram webhook
+      description: Admin endpoint that configures Telegram webhook to point to this server.
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Webhook set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      message: { type: string }
+
+  /api/telegram/remove-webhook:
+    post:
+      tags: [Telegram]
+      summary: Remove Telegram webhook
+      description: Admin endpoint that removes Telegram webhook.
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Webhook removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      message: { type: string }

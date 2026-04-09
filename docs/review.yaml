@@ -1,0 +1,204 @@
+paths:
+  /api/v1/review/business/{businessId}:
+    get:
+      tags: [Review]
+      summary: Get reviews by business
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Business reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Review' }
+
+  /api/v1/review/business/{businessId}/stats:
+    get:
+      tags: [Review]
+      summary: Get business rating statistics
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Rating statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      averageRating: { type: number }
+                      totalReviews: { type: integer }
+                      ratingDistribution:
+                        type: object
+                        additionalProperties: { type: integer }
+
+  /api/v1/review/staff/{staffId}:
+    get:
+      tags: [Review]
+      summary: Get reviews by staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Staff reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Review' }
+
+  /api/v1/review/staff/{staffId}/stats:
+    get:
+      tags: [Review]
+      summary: Get staff rating statistics
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Rating statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      averageRating: { type: number }
+                      totalReviews: { type: integer }
+
+  /api/v1/review/{id}:
+    get:
+      tags: [Review]
+      summary: Get review by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Review data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Review' }
+
+  /api/v1/review/client:
+    post:
+      tags: [Review]
+      summary: Create review
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReview'
+      responses:
+        201:
+          description: Review created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Review' }
+
+  /api/v1/review/client/{id}:
+    patch:
+      tags: [Review]
+      summary: Update review
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string }
+      responses:
+        200:
+          description: Review updated
+
+    delete:
+      tags: [Review]
+      summary: Delete review
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Review deleted
+
+components:
+  schemas:
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        clientId: { type: string }
+        businessId: { type: string }
+        staffId: { type: string, nullable: true }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        client:
+          type: object
+          properties:
+            id: { type: string }
+            fullName: { type: string }
+
+    CreateReview:
+      type: object
+      required: [businessId, rating]
+      properties:
+        businessId: { type: string }
+        staffId: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }

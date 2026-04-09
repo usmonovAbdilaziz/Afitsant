@@ -1,0 +1,192 @@
+paths:
+  /api/v1/working-hours/business/{businessId}:
+    get:
+      tags: [WorkingHours]
+      summary: Get business working hours
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Working hours
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/WorkingHours' }
+
+  /api/v1/working-hours/staff/{staffId}:
+    get:
+      tags: [WorkingHours]
+      summary: Get staff working hours
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Working hours
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/WorkingHours' }
+
+  /api/v1/working-hours/business:
+    post:
+      tags: [WorkingHours]
+      summary: Create business working hours
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkingHours'
+      responses:
+        201:
+          description: Working hours created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/WorkingHours' }
+
+  /api/v1/working-hours/staff:
+    post:
+      tags: [WorkingHours]
+      summary: Create staff working hours
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkingHours'
+      responses:
+        201:
+          description: Working hours created
+
+  /api/v1/working-hours/business/{id}:
+    patch:
+      tags: [WorkingHours]
+      summary: Update business working hours
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkingHours'
+      responses:
+        200:
+          description: Updated
+
+    delete:
+      tags: [WorkingHours]
+      summary: Delete business working hours
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Deleted
+
+  /api/v1/working-hours/staff/{id}:
+    patch:
+      tags: [WorkingHours]
+      summary: Update staff working hours
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkingHours'
+      responses:
+        200:
+          description: Updated
+
+    delete:
+      tags: [WorkingHours]
+      summary: Delete staff working hours
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Deleted
+
+components:
+  schemas:
+    WorkingHours:
+      type: object
+      properties:
+        id: { type: string }
+        dayOfWeek:
+          {
+            type: string,
+            enum:
+              [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY],
+          }
+        startTime: { type: string }
+        endTime: { type: string }
+        isActive: { type: boolean }
+
+    CreateWorkingHours:
+      type: object
+      required: [dayOfWeek, startTime, endTime]
+      properties:
+        businessId: { type: string }
+        staffId: { type: string }
+        dayOfWeek:
+          {
+            type: string,
+            enum:
+              [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY],
+          }
+        startTime: { type: string }
+        endTime: { type: string }
+        isActive: { type: boolean }
+
+    UpdateWorkingHours:
+      type: object
+      properties:
+        startTime: { type: string }
+        endTime: { type: string }
+        isActive: { type: boolean }

@@ -1,0 +1,347 @@
+paths:
+  /auth/register/client:
+    post:
+      tags: [Authentication]
+      summary: Register client user
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [email, phoneNumber, password, fullName]
+              properties:
+                email: { type: string, format: email }
+                phoneNumber: { type: string, minLength: 9 }
+                password: { type: string, minLength: 8 }
+                fullName: { type: string, minLength: 2 }
+                profilePhoto: { type: string, format: binary }
+      responses:
+        201:
+          description: Client registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        400:
+          $ref: '#/components/responses/ValidationError'
+        409:
+          $ref: '#/components/responses/Conflict'
+
+  /auth/register/business:
+    post:
+      tags: [Authentication]
+      summary: Register business user
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                [
+                  email,
+                  phoneNumber,
+                  password,
+                  fullName,
+                  businessName,
+                  businessType,
+                  address,
+                  city,
+                  phone,
+                ]
+              properties:
+                email: { type: string, format: email }
+                phoneNumber: { type: string, minLength: 9 }
+                password: { type: string, minLength: 8 }
+                fullName: { type: string, minLength: 2 }
+                profilePhoto: { type: string, format: binary }
+                businessName: { type: string, minLength: 2 }
+                businessType: { type: string, minLength: 2 }
+                description: { type: string }
+                address: { type: string, minLength: 5 }
+                city: { type: string, minLength: 2 }
+                phone: { type: string, minLength: 9 }
+                latitude: { type: number }
+                longitude: { type: number }
+      responses:
+        201:
+          description: Business registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        400:
+          $ref: '#/components/responses/ValidationError'
+        409:
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        400:
+          $ref: '#/components/responses/ValidationError'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current authenticated principal
+      description: Returns the minimal role-scoped user context used by the table and booking flows.
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Authenticated principal
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/AuthMe'
+              examples:
+                client:
+                  value:
+                    success: true
+                    data:
+                      id: clx123
+                      role: CLIENT
+                      businessId: null
+                      staffId: null
+                      phone: "+998901234567"
+                      fullName: "Ali Valiyev"
+                business:
+                  value:
+                    success: true
+                    data:
+                      id: usr123
+                      role: BUSINESS
+                      businessId: bus123
+                      phone: "+998901111111"
+                      fullName: "Business Owner"
+                staff:
+                  value:
+                    success: true
+                    data:
+                      id: stf123
+                      role: STAFF
+                      businessId: bus123
+                      staffId: stf123
+                      phone: "+998902222222"
+                      fullName: "Staff User"
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/change-password:
+    post:
+      tags: [Authentication]
+      summary: Change password
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string, minLength: 8 }
+      responses:
+        200:
+          description: Password changed successfully
+        400:
+          $ref: '#/components/responses/ValidationError'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/update-profile:
+    patch:
+      tags: [Authentication]
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string }
+                email: { type: string, format: email }
+                phoneNumber: { type: string }
+                profilePhoto: { type: string, format: binary }
+                telegramUsername: { type: string }
+      responses:
+        200:
+          description: Profile updated
+
+  /auth/staff/login:
+    post:
+      tags: [Authentication]
+      summary: Staff login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, phoneNumber]
+              properties:
+                fullName: { type: string }
+                phoneNumber: { type: string }
+      responses:
+        200:
+          description: Staff login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string }
+                      staff:
+                        $ref: '#/components/schemas/StaffPrincipal'
+        404:
+          description: Staff not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    StaffBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AuthSuccess:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean }
+        data:
+          type: object
+          required: [user, token]
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            token:
+              type: string
+              description: JWT bearer token
+
+    AuthMe:
+      type: object
+      required: [id, role]
+      properties:
+        id: { type: string }
+        role:
+          type: string
+          enum: [CLIENT, BUSINESS, ADMIN, STAFF]
+        businessId:
+          type: string
+          nullable: true
+        staffId:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        fullName:
+          type: string
+          nullable: true
+
+    User:
+      type: object
+      required: [id, email, phoneNumber, fullName, userType]
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        phoneNumber: { type: string }
+        fullName: { type: string }
+        userType: { type: string, enum: [CLIENT, BUSINESS, ADMIN] }
+        profilePhoto: { type: string, nullable: true }
+        business:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string }
+            businessName: { type: string }
+            businessType: { type: string }
+            isApproved: { type: boolean }
+
+    StaffPrincipal:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        phoneNumber: { type: string }
+        position: { type: string }
+        profilePhoto: { type: string, nullable: true }
+        businessId: { type: string }
+        isActive: { type: boolean }
+
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message: { type: string }
+            errors:
+              type: array
+              items: { type: string }
+
+  responses:
+    ValidationError:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

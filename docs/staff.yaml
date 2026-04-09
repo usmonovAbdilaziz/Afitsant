@@ -1,0 +1,302 @@
+paths:
+  /api/v1/staff/login:
+    get:
+      tags: [Staff]
+      summary: Staff login (legacy, use /auth/staff/login instead)
+      parameters:
+        - in: query
+          name: phoneNumber
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Staff token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string }
+                      staff: { $ref: '#/components/schemas/Staff' }
+
+  /api/v1/staff/me:
+    get:
+      tags: [Staff]
+      summary: Get current staff profile
+      security:
+        - StaffBearerAuth: []
+      responses:
+        200:
+          description: Staff data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Staff' }
+
+    patch:
+      tags: [Staff]
+      summary: Update current staff profile
+      security:
+        - StaffBearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string }
+                position: { type: string }
+                profilePhoto: { type: string, format: binary }
+      responses:
+        200:
+          description: Updated staff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Staff' }
+
+  /api/v1/staff:
+    post:
+      tags: [Staff]
+      summary: Create new staff
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                [businessId, fullName, phoneNumber, position, serviceIds]
+              properties:
+                businessId:
+                  { type: string, description: Business ID (CUID format) }
+                fullName: { type: string, minLength: 2 }
+                phoneNumber: { type: string, minLength: 9 }
+                position: { type: string, minLength: 2 }
+                serviceIds:
+                  type: array
+                  items: { type: string }
+                  description: Array of service IDs (at least 1 required)
+                profilePhoto: { type: string, format: binary }
+                isActive: { type: boolean, default: true }
+      responses:
+        201:
+          description: Staff created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Staff' }
+
+  /api/v1/staff/{id}:
+    get:
+      tags: [Staff]
+      summary: Get staff by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Staff data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Staff' }
+
+    patch:
+      tags: [Staff]
+      summary: Update staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string }
+                phoneNumber: { type: string }
+                position: { type: string }
+                isActive: { type: boolean }
+                profilePhoto: { type: string, format: binary }
+      responses:
+        200:
+          description: Updated staff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Staff' }
+
+    delete:
+      tags: [Staff]
+      summary: Delete staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Staff deleted
+
+  /api/v1/staff/business/{businessId}:
+    get:
+      tags: [Staff]
+      summary: Get staff by business ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: List of staff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Staff' }
+
+  /api/v1/staff/assign-service:
+    post:
+      tags: [Staff]
+      summary: Assign service to staff
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [staffId, serviceId]
+              properties:
+                staffId: { type: string }
+                serviceId: { type: string }
+      responses:
+        200:
+          description: Service assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+
+  /api/v1/staff/{staffId}/services/{serviceId}:
+    delete:
+      tags: [Staff]
+      summary: Remove service from staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: serviceId
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Service removed
+
+  /api/v1/public/staff/business/{businessId}:
+    get:
+      tags: [Staff]
+      summary: Get staff by business (public)
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: List of staff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Staff' }
+
+components:
+  securitySchemes:
+    StaffBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Staff authentication token
+
+  schemas:
+    Staff:
+      type: object
+      properties:
+        id: { type: string }
+        businessId: { type: string }
+        fullName: { type: string }
+        phoneNumber: { type: string }
+        position: { type: string }
+        profilePhoto: { type: string, nullable: true }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              name: { type: string }
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }

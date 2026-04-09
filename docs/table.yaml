@@ -1,0 +1,209 @@
+paths:
+  /api/v1/table:
+    get:
+      tags: [Table]
+      summary: Get tables by filter
+      parameters:
+        - in: query
+          name: businessId
+          schema: { type: string }
+          description: Filter by business ID
+      responses:
+        200:
+          description: List of tables
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Table' }
+
+    post:
+      tags: [Table]
+      summary: Create new table
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTable'
+      responses:
+        201:
+          description: Table created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Table' }
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        409:
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/table/{id}:
+    get:
+      tags: [Table]
+      summary: Get table by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Table data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Table' }
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Table]
+      summary: Update table
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTable'
+      responses:
+        200:
+          description: Updated table
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Table' }
+        409:
+          $ref: '#/components/responses/Conflict'
+
+    delete:
+      tags: [Table]
+      summary: Delete table
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        204:
+          description: Table deleted
+        409:
+          description: Cannot delete table with active bookings
+
+  /api/v1/table/business/{businessId}:
+    get:
+      tags: [Table]
+      summary: Get tables by business ID
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: List of tables
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Table' }
+        404:
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Table:
+      type: object
+      properties:
+        id: { type: string }
+        businessId: { type: string }
+        tableNumber: { type: integer }
+        tableColumns: { type: string, nullable: true }
+        status: { type: string, enum: [BUSY, CLEANED, EMPTY] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateTable:
+      type: object
+      required: [businessId, tableNumber]
+      properties:
+        businessId: { type: string }
+        tableNumber: { type: integer, minimum: 1 }
+        tableColumns: { type: string }
+
+    UpdateTable:
+      type: object
+      properties:
+        tableNumber: { type: integer, minimum: 1 }
+        tableColumns: { type: string }
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
