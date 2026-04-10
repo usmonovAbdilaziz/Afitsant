@@ -23,7 +23,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.abdilaziz.afitsant"
     },
     "androidStatusBar": {
       "translucent": false,
@@ -35,6 +36,12 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "13f34b13-11b8-41db-ba56-b9c849ad807f"
+      }
+    }
   }
 }

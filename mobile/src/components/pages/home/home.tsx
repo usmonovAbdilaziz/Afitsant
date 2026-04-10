@@ -1,6 +1,4 @@
 import type { BusinessListItem, TableListItem } from '@/api/businessApi';
-import { getToken } from '@/components/storage/token';
-import { getUserInfo } from '@/components/storage/userInfo';
 import {
   Select,
   SelectContent,
@@ -14,8 +12,7 @@ import { useGetAllBusiness, useGetAllTables } from '@/hooks/business';
 import QrScanner from '@/lib/QrScanner';
 import { useQr } from '@/providers/qr-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -25,12 +22,6 @@ import {
   Text,
   View,
 } from 'react-native';
-
-type StoredUserInfo = {
-  role?: string | null;
-  userType?: string | null;
-  type?: string | null;
-};
 
 function formatDisplayLabel(value?: string | null) {
   if (!value) {
@@ -54,7 +45,6 @@ function getTableColumnsLabel(table: TableListItem) {
 }
 
 export default function GlobalHomePage() {
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const [selectedBusinessId, setSelectedBusinessId] = useState('');
   const [selectedTableId, setSelectedTableId] = useState('');
   const businessQuery = useGetAllBusiness();
@@ -109,53 +99,7 @@ export default function GlobalHomePage() {
     }
   }, [selectedTableId, tables]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
 
-      const checkAuth = async () => {
-        const [token, userInfo] = await Promise.all([
-          getToken(),
-          getUserInfo(),
-        ]);
-        const resolvedRole =
-          userInfo && typeof userInfo === 'object'
-            ? String(
-                (userInfo as StoredUserInfo).role ??
-                  (userInfo as StoredUserInfo).userType ??
-                  (userInfo as StoredUserInfo).type ??
-                  '',
-              ).trim()
-            : '';
-
-        if (!token || !resolvedRole) {
-          if (isMounted) {
-            router.replace('/auth/sign-in/login');
-          }
-          return;
-        }
-
-        if (isMounted) {
-          setCheckingAuth(false);
-        }
-      };
-
-      setCheckingAuth(true);
-      void checkAuth();
-
-      return () => {
-        isMounted = false;
-      };
-    }, []),
-  );
-
-  if (checkingAuth) {
-    return (
-      <View className="flex-1 items-center justify-center bg-slate-50">
-        <ActivityIndicator size="large" color="#0284c7" />
-      </View>
-    );
-  }
 
   return (
     <View className="flex-1 bg-slate-50 mb-20">

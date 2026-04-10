@@ -265,5 +265,62 @@ Qamrab olingan joylar:
 - Client, staff va business booking oqimlari bir-biriga moslashtirildi.
 - Staff roli bo'yicha alohida sahifalar va booking queue'lar ishlaydi.
 - Booking progress lifecycle item darajasidan delivery yakunigacha ishlaydi.
-- Runner va waiter endi to'liq booking tarkibi hamda summasini ko'radi.
 - Staff booking sahifasida accordion, kunlik filter va doimiy arxiv statistikasi ishlaydi.
+
+---
+
+# 2026-04-09 Kunlik Ishlar Hisoboti
+
+## Mobile Auth & Navigation
+
+- Mobile ilova ishga tushganda doim foydalanuvchiga birinchi marta login oynasi ko'rsatilayotgan mantiqiy xato to'g'rilandi.
+- Endi ilova birinchi marta yuklanganda darhol `Home` sahifasiga o'tadi (`mobile/src/app/index.tsx`).
+- Foydalanuvchi faqatgina `Profile` sahifasiga kirishga uringandagina, agar tizimga kirmagan bo'lsa (token yo'q bo'lsa), auth/login ekraniga yo'naltiriladigan qilindi.
+- `profile.tsx` sahifasida `useFocusEffect` orqali sahifa aktiv bo'lganda silliq tekshiruv o'rnatildi, vizual refresh muammolarni oldini olish uchun `ActivityIndicator` qoshildi.
+- **Qo'shimcha tuzatish:** `home.tsx` componentining ichida o'rnatilgan eski auth tekshiruvi (foydalanuvchi tizimga kirmagan bo'lsa darhol login sahifasiga yo'naltiruvchi kod) olib tashlandi. Shunday qilib uy sahifasi hamma uchun to'siqsiz ochiladigan bo'ldi.
+- Shuningdek, `home.tsx` dan endilikda keraksiz bo'lib qolgan token va auth importlari tozalandi.
+
+Qamrab olingan joylar:
+- `mobile/src/app/index.tsx`
+- `mobile/src/app/(tab)/profile.tsx`
+- `mobile/src/components/pages/home/home.tsx`
+
+## 17:39 – Mobile Tab Tartib Tuzatishi va Login Keyboard Animatsiya
+
+- **Asosiy muammo aniqlandi:** `sidebar-client.tsx` da `Profile` birinchi tab sifatida turgan, shuning uchun Expo Router `(tab)` guruhini yuklanganda darhol `profile` ekranini render qilgan va u auth tekshiruvini ishga tushirib login'ga yo'naltirgan.
+- **Tuzatish:** `sidebarUseClient` massividagi tab tartibini qayta tashkil qilindi: `Home → Booking → Archive → Progress → Profile`. Endi birinchi tab `Home` bo'lib darhol ko'rinadi.
+- **Root layout yangilandi:** `_layout.tsx` da `index`, `(tab)` va `auth/sign-in/login` ekranlari to'g'ri tartibda yozildi. Auth ekrani `presentation: 'modal'` sifatida belgilandi.
+- **Login keyboard animatsiyasi:** `auth-form-screen.tsx` da eski `KeyboardAvoidingView` + `LayoutAnimation` yondashuvi o'rniga `Animated.Value` + `Animated.spring` ga o'tkazildi. Endi keyboard ochilganda card silliq tarzda tepaga suriladi va keyboard ostidan ko'rinib turadi.
+
+Qamrab olingan joylar:
+- `mobile/src/providers/sidebar-client.tsx`
+- `mobile/src/app/_layout.tsx`
+- `mobile/src/auth/sign-in/components/auth-form-screen.tsx`
+
+## 17:47 – Input Component Refaktoring va Keyboard Muammosi Tuzatildi
+
+- **Muammo:** Login sahifasida faqat password input keyboard ochardi, qolgan inputlarda (email, ism, telefon) keyboard ochilmas edi. Sabab: `auth-form-screen.tsx` dagi `TouchableWithoutFeedback` barcha touch eventlarni ushlayotgan va `Keyboard.dismiss()` ni darhol ishga tushirayotgan edi.
+- **Tuzatish 1:** `TouchableWithoutFeedback` butunlay olib tashlandi. O'rniga faqat background (header va spacer) joylariga `Pressable onPress={Keyboard.dismiss}` qo'yildi. Inputlar endi to'siqsiz ishlaydi.
+- **Tuzatish 2:** Yangi alohida `Input` component yaratildi (`mobile/src/components/ui/input.tsx`):
+  - `forwardRef` bilan ref support
+  - `showSoftInputOnFocus={true}` bilan keyboard garantiyalangan ochiladi
+  - Password toggle (`eye/eye-off` icon) ichki holat bilan boshqariladi
+  - `StyleSheet` asosida professional styling
+- **Tozalash:** Eski `Input` componenti `form.tsx` dan olib tashlandi va login fayllaridagi importlar yangilandi.
+
+Qamrab olingan joylar:
+- `mobile/src/components/ui/input.tsx` (yangi)
+- `mobile/src/components/ui/form.tsx`
+- `mobile/src/auth/sign-in/components/auth-form-screen.tsx`
+- `mobile/src/auth/sign-in/components/business-login.tsx`
+- `mobile/src/auth/sign-in/components/staff-login.tsx`
+
+## 17:50 – form.tsx Clean Code Refaktoring
+
+- `form.tsx` to'liq qayta yozildi: `className` string'lar o'rniga `StyleSheet` ishlatildi.
+- `TextArea` ga `showSoftInputOnFocus={true}` qo'shildi — keyboard har doim ochiladi.
+- `Label`, `FormError`, `FormField`, `TextArea` komponentlari tartibli section'larga ajratildi.
+- Keraksiz importlar (`forwardRef` faqat `TextArea` uchun, `Pressable` olib tashlandi) tozalandi.
+
+Qamrab olingan joy:
+- `mobile/src/components/ui/form.tsx`

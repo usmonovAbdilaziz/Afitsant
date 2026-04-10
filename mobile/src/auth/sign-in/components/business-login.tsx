@@ -10,7 +10,8 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormField, Input } from "@/components/ui/form";
+import { FormField } from "@/components/ui/form";
+import Input from "@/components/ui/input";
 import { useBusiness } from "@/hooks/business";
 import { replaceAuthStorage } from "@/components/storage/auth";
 import { router } from "expo-router";

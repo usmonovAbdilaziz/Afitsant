@@ -10,7 +10,8 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormField, Input } from "@/components/ui/form";
+import { FormField } from "@/components/ui/form";
+import Input from "@/components/ui/input";
 import { useStaffLogin } from "@/hooks/staff";
 import { replaceAuthStorage } from "@/components/storage/auth";
 import { router } from "expo-router";
@@ -47,7 +48,7 @@ export default function StaffLogin() {
 
     try {
       const res = await staffLogin.mutateAsync(data);
-      
+
       await replaceAuthStorage(res.token, res.user);
       router.replace("/(tab)/home");
     } catch (error) {
@@ -113,7 +114,6 @@ export default function StaffLogin() {
           )}
         />
       </FormField>
-
       <TouchableOpacity
         activeOpacity={0.85}
         className="mt-4 rounded-xl bg-emerald-600 py-3"

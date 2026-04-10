@@ -11,8 +11,15 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <QrProvider>
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="auth/sign-in/login" />
+            <Stack.Screen name="index" />
             <Stack.Screen name="(tab)" />
+            <Stack.Screen 
+              name="auth/sign-in/login" 
+              options={{ 
+                presentation: 'transparentModal',
+                animation: 'slide_from_bottom' 
+              }} 
+            />
           </Stack>
         </QrProvider>
       </QueryClientProvider>

@@ -1,6 +1,6 @@
 import GlobalProfilePage from '@/components/pages/profile/profile';
-import { Text, View } from 'react-native';
+import { useFocusEffect, router } from 'expo-router';
 
 export default function StaffProfileScreen() {
-  return <GlobalProfilePage/>
+  return <GlobalProfilePage />;
 }

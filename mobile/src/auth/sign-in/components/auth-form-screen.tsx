@@ -1,14 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
-  Keyboard,
   KeyboardAvoidingView,
-  KeyboardEvent,
-  LayoutAnimation,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,147 +13,83 @@ type AuthFormScreenProps = {
   description: string;
   header?: ReactNode;
   children: ReactNode;
+  onClose?: ReactNode;
 };
 
-export function AuthFormScreen({
-  title,
-  description,
-  header,
-  children,
-}: AuthFormScreenProps) {
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-  useEffect(() => {
-    const showEvent =
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent =
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const runKeyboardAnimation = (event: KeyboardEvent) => {
-      if (Platform.OS === "ios") {
-        Keyboard.scheduleLayoutAnimation(event);
-        return;
-      }
-
-      LayoutAnimation.configureNext({
-        duration: event.duration > 0 ? event.duration : 220,
-        update: {
-          type: LayoutAnimation.Types.easeInEaseOut,
-        },
-        create: {
-          type: LayoutAnimation.Types.easeInEaseOut,
-          property: LayoutAnimation.Properties.opacity,
-        },
-        delete: {
-          type: LayoutAnimation.Types.easeInEaseOut,
-          property: LayoutAnimation.Properties.opacity,
-        },
-      });
-    };
-
-    const showSubscription = Keyboard.addListener(showEvent, (event) => {
-      runKeyboardAnimation(event);
-      setIsKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener(hideEvent, (event) => {
-      runKeyboardAnimation(event);
-      setIsKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
+export function AuthFormScreen({ title, description, children, onClose }: AuthFormScreenProps) {
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
-      <TouchableWithoutFeedback accessible={false} onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={0}
+    <SafeAreaView className="flex-1 bg-slate-900">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"} // Android uchun 'height' ko'p holatlarda yaxshi ishlaydi
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }} // BU JUDA MUHIM: Scroll ichi to'liq flex bo'lishi uchun
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled" // Inputga tegishni osonlashtiradi
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView
-            bounces={false}
-            contentContainerStyle={styles.scrollContent}
-            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View
-              style={[
-                styles.content,
-                isKeyboardVisible
-                  ? styles.contentWithKeyboard
-                  : styles.contentWithoutKeyboard,
-              ]}
-            >
-              {header ? <View style={styles.header}>{header}</View> : null}
-
-              <View style={styles.cardWrapper}>
-                <View style={styles.card}>
-                  <Text style={styles.title}>{title}</Text>
-                  <Text style={styles.description}>{description}</Text>
-
-                  <View style={styles.formContent}>{children}</View>
+          {/* justify-end -> Cardni doim pastda ushlab turadi */}
+          <View className="flex-1 justify-end">
+            {/* Bo'sh joy tepada */}
+            <View className="flex-1" />
+            <View className="rounded-t-3xl bg-white p-6 pb-12 shadow-md">
+              <View className="flex-row items-start justify-between">
+                <View className="flex-1 pr-4">
+                  <Text className="text-3xl font-bold text-slate-900">{title}</Text>
+                  <Text className="mt-2 text-base text-slate-600">{description}</Text>
                 </View>
+                {onClose ? <View>{onClose}</View> : null}
               </View>
+              <View className="mt-6">{children}</View>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#020617",
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  contentWithoutKeyboard: {
-    paddingBottom: 24,
-  },
-  contentWithKeyboard: {
-    paddingBottom: 3,
-  },
-  header: {
-    alignItems: "center",
-  },
-  cardWrapper: {
-    flex: 1,
-    justifyContent: "flex-end",
-    paddingTop: 24,
-  },
-  card: {
-    borderRadius: 28,
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "700",
-    color: "#0f172a",
-  },
-  description: {
-    marginTop: 8,
-    fontSize: 15,
-    color: "#64748b",
-  },
-  formContent: {
-    marginTop: 24,
-  },
-});
+// const styles = StyleSheet.create({
+//   safeArea: {
+//     flex: 1,
+//     backgroundColor: "#020617",
+//   },
+//   scrollContent: {
+//     flexGrow: 1,
+//   },
+//   content: {
+//     flexGrow: 1,
+//     paddingHorizontal: 24,
+//     paddingTop: 24,
+//     paddingBottom: 24, // Optional padding for when the keyboard is open/closed
+//   },
+//   header: {
+//     alignItems: "center",
+//     justifyContent: "center",
+//   },
+//   spacer: {
+//     flex: 1,
+//   },
+//   card: {
+//     borderRadius: 28,
+//     backgroundColor: "#ffffff",
+//     paddingHorizontal: 24,
+//     paddingVertical: 32,
+//   },
+//   title: {
+//     fontSize: 30,
+//     fontWeight: "700",
+//     color: "#0f172a",
+//   },
+//   description: {
+//     marginTop: 8,
+//     fontSize: 15,
+//     color: "#64748b",
+//   },
+//   formContent: {
+//     marginTop: 24,
+//   },
+// });
+
+

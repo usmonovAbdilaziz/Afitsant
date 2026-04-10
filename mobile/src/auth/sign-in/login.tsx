@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { Keyboard, StyleSheet, View } from "react-native";
+import { Keyboard, Text, TouchableOpacity, View } from "react-native";
 import StaffLogin from "./components/staff-login";
-import BusinessLogin from "./components/business-login";
-import { Button } from "@/components/ui/button";
-import { AuthFormScreen } from "./components/auth-form-screen";
 
+import { AuthFormScreen } from "./components/auth-form-screen";
+import BusinessLogin from "./components/business-login";
+import { useRouter } from "expo-router";
 
 export default function LoginChoicePage() {
-  const [staff, setStaff] = useState(false);
+  const [staff, setStaff] = useState(true);
   const isStaffLogin = staff;
+  const router = useRouter();
 
   const handleSelectBusiness = () => {
     Keyboard.dismiss();
@@ -25,36 +26,46 @@ export default function LoginChoicePage() {
       title="Login"
       description={
         isStaffLogin
-          ? "Staff sifatida tizimga kiring"
+          ? "Login uchun ismingiz va telefon raqamingizni kiriting"
           : "Business account orqali tizimga kiring"
       }
-      header={
-        <View style={styles.switcher}>
-          <Button
-            variant={isStaffLogin ? "outline" : "default"}
-            onPress={handleSelectBusiness}
+      onClose={
+        <View>
+          <TouchableOpacity
+            onPress={() => router.replace('/(tab)/home')}
+            style={{ padding: 8, backgroundColor: '#f1f5f9', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}
           >
-            Business
-          </Button>
-          <Button
-            variant={isStaffLogin ? "default" : "outline"}
-            onPress={handleSelectStaff}
-          >
-            Staff
-          </Button>
+            <Text style={{ fontSize: 18, color: '#475569', fontWeight: 'bold' }}>✕</Text>
+          </TouchableOpacity>
         </View>
       }
+    // header={
+    //   <View style={styles.switcher}>
+    //     {/* <Button
+    //       variant={isStaffLogin ? "outline" : "default"}
+    //       onPress={handleSelectBusiness}
+    //     >
+    //       Business
+    //     </Button> */}
+    //     <Button
+    //       variant={isStaffLogin ? "default" : "outline"}
+    //       onPress={handleSelectStaff}
+    //     >
+    //       Staff
+    //     </Button>
+    //   </View>
+    // }
     >
       {isStaffLogin ? <StaffLogin /> : <BusinessLogin />}
     </AuthFormScreen>
   );
 }
 
-const styles = StyleSheet.create({
-  switcher: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-});
+// const styles = StyleSheet.create({
+//   switcher: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     gap: 12,
+//   },
+// });

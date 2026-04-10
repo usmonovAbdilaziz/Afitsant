@@ -9,22 +9,10 @@ export type StaffSidebarItem = {
 
 export const sidebarUseClient: StaffSidebarItem[] = [
   {
-    title: 'Profile',
-    path: 'profile',
-    icon: 'person-outline',
-    activeIcon: 'person',
-  },
-  {
     title: 'Booking',
     path: 'booking',
     icon: 'calendar-outline',
     activeIcon: 'calendar',
-  },
-  {
-    title: 'Home',
-    path: 'home',
-    icon: 'home-outline',
-    activeIcon: 'home',
   },
   {
     title: 'Archive',
@@ -33,9 +21,22 @@ export const sidebarUseClient: StaffSidebarItem[] = [
     activeIcon: 'archive',
   },
   {
+    title: 'Home',
+    path: 'home',
+    icon: 'home-outline',
+    activeIcon: 'home',
+  },
+
+  {
     title: 'Progress',
     path: 'progress',
     icon: 'stats-chart-outline',
     activeIcon: 'stats-chart',
+  },
+  {
+    title: 'Profile',
+    path: 'profile',
+    icon: 'person-outline',
+    activeIcon: 'person',
   },
 ];

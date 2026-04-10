@@ -82,6 +82,15 @@ type StaffLoginResponse = {
   };
 };
 
+type MeResponse = {
+  user: AuthUser;
+};
+
+export const Me = async (): Promise<MeResponse> => {
+  const { data } = await api.get<MeResponse>("/auth/me");
+  return data;
+};
+
 const normalizeRole = (value: string | undefined, fallback: string) =>
   String(value ?? fallback).trim().toUpperCase();
 

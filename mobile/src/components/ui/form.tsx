@@ -1,129 +1,117 @@
-import React, { forwardRef, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
+import React, { forwardRef } from "react";
 import {
-  Pressable,
+  StyleSheet,
   Text,
   TextInput,
-  TextInputProps,
-  TextProps,
+  type TextInputProps,
+  type TextProps,
   View,
 } from "react-native";
 
-type InputProps = Omit<TextInputProps, "showSoftInputOnFocus"> & {
-  hasError?: boolean;
-  isPassword?: boolean;
-};
+// ─── Label ───────────────────────────────────────────
 
-export const Input = forwardRef<TextInput, InputProps>(function Input(
-  {
-    autoCorrect = false,
-    hasError,
-    isPassword,
-    spellCheck = false,
-    style,
-    ...props
-  },
-  ref
-) {
-  const [showPassword, setShowPassword] = useState(false);
+type LabelProps = TextProps;
 
-  return (
-    <View
-      className={`flex-row items-center border rounded-xl pl-4 pr-3 min-h-[54px] bg-white ${
-        hasError ? "border-red-500" : "border-neutral-300"
-      }`}
-    >
-      <TextInput
-        ref={ref}
-        autoCorrect={autoCorrect}
-        cursorColor="#0284c7"
-        placeholderTextColor="#9ca3af"
-        secureTextEntry={!!isPassword && !showPassword}
-        selectionColor="#0284c7"
-        spellCheck={spellCheck}
-        className="flex-1 text-base text-black py-3"
-        style={style}
-        {...props}
-      />
-      {isPassword && (
-        <Pressable
-          hitSlop={8}
-          onPress={() => setShowPassword((currentValue) => !currentValue)}
-          className="ml-2 p-1"
-        >
-          <Ionicons
-            name={showPassword ? "eye" : "eye-off"}
-            size={20}
-            color="gray"
-          />
-        </Pressable>
-      )}
-    </View>
-  );
-});
-
-export function Label({ className = "", ...props }: TextProps) {
-  return (
-    <Text className={`mb-1 text-sm font-medium text-zinc-800 ${className}`} {...props} />
-  );
+export function Label({ style, ...props }: LabelProps) {
+  return <Text style={[styles.label, style]} {...props} />;
 }
+
+// ─── FormError ───────────────────────────────────────
+
 type FormErrorProps = {
-  message?: string
-}
+  message?: string;
+};
 
 export function FormError({ message }: FormErrorProps) {
   if (!message) return null;
 
-  return <Text className="mt-1 text-sm text-red-500">{message}</Text>;
+  return <Text style={styles.error}>{message}</Text>;
 }
-type FormFieldProps ={
-    label?:string
-    error?:string
-    children:React.ReactNode
-}
-export function FormField({label,error,children}:FormFieldProps){
-     return (
-    <View className="mb-4">
+
+// ─── FormField ───────────────────────────────────────
+
+type FormFieldProps = {
+  label?: string;
+  error?: string;
+  children: React.ReactNode;
+};
+
+export function FormField({ label, error, children }: FormFieldProps) {
+  return (
+    <View style={styles.field}>
       {label ? <Label>{label}</Label> : null}
       {children}
       <FormError message={error} />
     </View>
-  )
+  );
 }
-type TextAreaProps = Omit<TextInputProps, "showSoftInputOnFocus"> & {
+
+// ─── TextArea ────────────────────────────────────────
+
+type TextAreaProps = TextInputProps & {
   hasError?: boolean;
 };
 
-
 export const TextArea = forwardRef<TextInput, TextAreaProps>(function TextArea(
-  {
-    autoCorrect = true,
-    hasError,
-    spellCheck = true,
-    style,
-    ...props
-  },
+  { hasError, style, ...props },
   ref
 ) {
   return (
     <View
-      className={`border rounded-xl px-4 py-3 bg-white ${
-        hasError ? "border-red-500" : "border-zinc-300"
-      }`}
+      style={[
+        styles.textAreaWrapper,
+        hasError ? styles.wrapperError : styles.wrapperDefault,
+      ]}
     >
       <TextInput
         ref={ref}
-        autoCorrect={autoCorrect}
+        autoCorrect
         cursorColor="#0284c7"
         multiline
         placeholderTextColor="#9ca3af"
         selectionColor="#0284c7"
-        spellCheck={spellCheck}
-        className="min-h-[100px] text-base text-black"
-        style={style}
+        spellCheck
         textAlignVertical="top"
+        style={[styles.textArea, style]}
         {...props}
       />
     </View>
   );
+});
+
+// ─── Styles ──────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  label: {
+    marginBottom: 4,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#27272a",
+  },
+  error: {
+    marginTop: 4,
+    fontSize: 14,
+    color: "#ef4444",
+  },
+  field: {
+    marginBottom: 16,
+  },
+  textAreaWrapper: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+  },
+  wrapperDefault: {
+    borderColor: "#d4d4d8",
+  },
+  wrapperError: {
+    borderColor: "#ef4444",
+  },
+  textArea: {
+    minHeight: 100,
+    fontSize: 16,
+    color: "#0f172a",
+  },
 });

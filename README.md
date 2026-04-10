@@ -11,6 +11,7 @@ bun install
 cp .env.example .env
 bun run prisma:generate
 bun run prisma db push
+bun run prisma:seed
 bun run start:dev
 ```
 
@@ -71,3 +72,8 @@ home dashboard
 stafflarni abet vaqtida booking qilish imkoniyati bulmasiligi kerak
 
 }
+
+run redis 
+```
+docker run -d -p 6379:6379 --name redis redis
+```
