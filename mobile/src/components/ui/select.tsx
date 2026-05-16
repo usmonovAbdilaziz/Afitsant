@@ -16,12 +16,10 @@ import {
   ScrollView,
   Text,
   type PressableProps,
-  type StyleProp,
-  type TextStyle,
   View,
-  type ViewStyle,
-} from "react-native";
+} from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { cn } from '@/lib/utils';
 
 type SelectRootProps = PropsWithChildren<{
   value?: string;
@@ -225,16 +223,11 @@ export function SelectTrigger({
   children,
   disabled,
   hasError,
-  style,
+  className,
   ...props
 }: SelectTriggerProps) {
-  const context = useSelectContext("SelectTrigger");
+  const context = useSelectContext('SelectTrigger');
   const isDisabled = Boolean(context.disabled || disabled);
-
-  const baseClasses =
-    "flex-row items-center justify-between min-h-[54px] rounded-xl border bg-white px-3.5 pl-4";
-  const errorClasses = hasError ? " border-red-500" : " border-neutral-300";
-  const disabledClasses = isDisabled ? " bg-slate-50 opacity-75" : "";
 
   return (
     <Pressable
@@ -242,17 +235,19 @@ export function SelectTrigger({
       accessibilityState={{ disabled: isDisabled, expanded: context.open }}
       disabled={isDisabled}
       onPress={() => context.setOpen(!context.open)}
-      style={style}
-      className={`${baseClasses}${errorClasses}${disabledClasses}`}
+      className={cn(
+        'flex-row items-center justify-between min-h-[54px] rounded-xl border bg-white px-3.5 pl-4',
+        hasError ? 'border-red-500' : 'border-slate-300',
+        isDisabled && 'bg-slate-50 opacity-75',
+        className,
+      )}
       {...props}
     >
-      <View className="flex-1 pr-3 py-3">
-        {children}
-      </View>
+      <View className="flex-1 pr-3 py-3">{children}</View>
       <Ionicons
-        name={context.open ? "chevron-up" : "chevron-down"}
+        name={context.open ? 'chevron-up' : 'chevron-down'}
         size={18}
-        color={isDisabled ? "#94a3b8" : "#475569"}
+        color={isDisabled ? '#94a3b8' : '#475569'}
       />
     </Pressable>
   );
@@ -278,12 +273,11 @@ export function SelectValue({
 
 export function SelectContent({
   children,
-  title = "Select an option",
-  style,
-  viewportStyle,
+  title = 'Select an option',
+  className,
   maxHeight = 320,
 }: SelectContentProps) {
-  const context = useSelectContext("SelectContent");
+  const context = useSelectContext('SelectContent');
 
   return (
     <Modal
@@ -293,23 +287,30 @@ export function SelectContent({
       visible={context.open}
     >
       <View className="flex-1 justify-end">
-        <Pressable className="absolute inset-0 bg-slate-900/40" onPress={() => context.setOpen(false)} />
+        <Pressable
+          className="absolute inset-0 bg-black/40"
+          onPress={() => context.setOpen(false)}
+        />
 
-        <SafeAreaView edges={["bottom"]} className="justify-end">
+        <SafeAreaView edges={['bottom']} className="justify-end">
           <View
-            style={style}
-            className="bg-slate-50 rounded-t-[32px] px-[18px] pt-3 pb-[14px] shadow-lg"
+            className={cn(
+              'bg-slate-50 rounded-t-3xl px-4 pt-3 pb-4 shadow-lg',
+              className,
+            )}
           >
-            <View className="items-center mb-[14px]">
-              <View className="w-14 h-[5px] rounded-full bg-slate-300" />
+            <View className="items-center mb-3">
+              <View className="w-12 h-1 rounded-full bg-slate-300" />
             </View>
 
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-[17px] font-extrabold text-slate-900">{title}</Text>
+              <Text className="text-lg font-extrabold text-slate-900">
+                {title}
+              </Text>
               <Pressable
                 hitSlop={8}
                 onPress={() => context.setOpen(false)}
-                className="w-10 h-10 rounded-full bg-indigo-50 items-center justify-center"
+                className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center"
               >
                 <Ionicons name="close" size={20} color="#475569" />
               </Pressable>
@@ -317,8 +318,7 @@ export function SelectContent({
 
             <ScrollView
               bounces={false}
-              contentContainerStyle={viewportStyle}
-              contentContainerClassName="flex-row flex-wrap gap-y-3 gap-x-3 pb-3"
+              contentContainerClassName="flex-row flex-wrap gap-2 pb-3"
               showsVerticalScrollIndicator={false}
               style={{ maxHeight }}
             >
@@ -358,11 +358,10 @@ export function SelectItem({
   children,
   disabled = false,
   label,
-  style,
-  textStyle,
+  className,
   value,
 }: SelectItemProps) {
-  const context = useSelectContext("SelectItem");
+  const context = useSelectContext('SelectItem');
   const isSelected = context.selectedValue === value;
   const displayLabel = label ?? extractTextLabel(children) ?? value;
 
@@ -379,29 +378,36 @@ export function SelectItem({
         context.setSelectedValue(value);
         context.setOpen(false);
       }}
-      style={style}
-      className={`flex-row items-center justify-between min-h-[58px] rounded-[18px] border px-4 py-[14px] bg-white ${
-        isSelected ? "border-sky-300 bg-sky-50" : "border-slate-200"
-      } ${disabled ? "opacity-45" : ""} flex-shrink`}
+      className={cn(
+        'flex-row items-center justify-between flex-1 min-h-[52px] rounded-xl border px-3 py-3 bg-white',
+        isSelected ? 'border-blue-300 bg-blue-50' : 'border-slate-200',
+        disabled && 'opacity-50',
+        className,
+      )}
     >
-      <View className="flex-1 min-w-0 pr-3">
+      <View className="flex-1 min-w-0 pr-2">
         <Text
           numberOfLines={1}
-          style={textStyle}
-          className={`text-[15px] font-semibold ${
-            isSelected ? "text-slate-950" : disabled ? "text-slate-400" : "text-slate-900"
-          }`}
+          className={cn(
+            'text-sm font-medium',
+            isSelected
+              ? 'text-slate-900'
+              : disabled
+                ? 'text-slate-400'
+                : 'text-slate-700',
+          )}
         >
           {children ?? displayLabel}
         </Text>
       </View>
 
       <View
-        className={`h-7 w-7 rounded-full items-center justify-center ${
-          isSelected ? "bg-slate-900 border border-slate-900" : "bg-white border border-slate-300"
-        }`}
+        className={cn(
+          'w-5 h-5 rounded-full items-center justify-center flex-shrink-0',
+          isSelected ? 'bg-blue-600' : 'border border-slate-300 bg-white',
+        )}
       >
-        {isSelected ? <Ionicons name="checkmark" size={16} color="#ffffff" /> : null}
+        {isSelected && <Ionicons name="checkmark" size={12} color="#ffffff" />}
       </View>
     </Pressable>
   );

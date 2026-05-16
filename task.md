@@ -269,6 +269,117 @@ Qamrab olingan joylar:
 
 ---
 
+# 2026-05-15 Kunlik Ishlar Hisoboti
+
+## Swagger / OpenAPI komponent merge xatosi tuzatildi
+
+**Muammo:** Swagger UI `booking.yaml` dagi `$ref: '#/components/parameters/BookingStatusQuery'` va boshqa parametrlarga resolver xatosi bermoqda edi.
+
+**Sabab:** `src/app.ts` da `swaggerDocs.components` ni qayta yig'ishda faqat `schemas` alohida merge qilingan, lekin `parameters`, `responses`, `securitySchemes` va boshqa kalitlar `...generatedComponents` spread orqali yozib ketilgan edi.
+
+**Tuzatish:** Barcha standart OpenAPI komponent kalitlari (`schemas`, `parameters`, `responses`, `securitySchemes`, `requestBodies`, `headers`, `examples`) uchun alohida deep-merge qo'shildi.
+
+Qamrab olingan joy:
+- `src/app.ts`
+
+---
+
+## PostgreSQL auth va ma'lumotlar bazasi muammosi hal qilindi
+
+**Muammo:** Backend `P1000 AuthenticationFailed` xatosi bilan ishlamay turibdi.
+
+**Sabab:** `.env` dagi `DATABASE_URL` da `postgres` foydalanuvchisi uchun parol noto'g'ri edi (`abudev99`), va `afitsant` ma'lumotlar bazasi mavjud emas edi.
+
+**Tuzatish:**
+1. `sudo -u postgres psql` orqali `postgres` foydalanuvchisi paroli `abudev99` ga o'zgartirildi
+2. `afitsant` ma'lumotlar bazasi yaratildi
+3. Prisma migratsiyalari ishga tushirildi (`prisma migrate deploy`)
+
+Qamrab olingan joylar:
+- PostgreSQL server konfiguratsiyasi
+
+---
+
+## Frontend API integratsiyasi kengaytirildi
+
+Loyihada mavjud bo'lmagan API ulanishlari, turlar, hooklar va sahifalar qo'shildi.
+
+### Yangi turlar (types/)
+
+- `src/types/booking.ts` — `Booking`, `BookingItem`, `BookingFilters`, `BookingStatus`, `PriceStatus` turlari
+- `src/types/working-hours.ts` — `WorkingHours`, `DayOfWeek`, `DAYS_OF_WEEK`, `DAY_LABELS`, create/update turlari
+- `src/types/review.ts` — `Review`, `ReviewStats` turlari
+
+### Yangi API fayllari (api/)
+
+- `shadcn-admin/src/api/booking.ts`
+  - `getBusinessBookings(businessId, filters)` — sahifalangan booking ro'yxati
+  - `confirmBooking(id)` — PATCH `/:id/confirm`
+  - `completeBooking(id)` — PATCH `/:id/complete`
+  - `cancelBooking(id)` — PATCH `/:id/staff-cancel`
+- `shadcn-admin/src/api/working-hours.ts`
+  - `getBusinessWorkingHours(businessId)`
+  - `createBusinessWorkingHours(data)`
+  - `updateBusinessWorkingHours(id, data)`
+  - `deleteBusinessWorkingHours(id)`
+- `shadcn-admin/src/api/review.ts`
+  - `getBusinessReviews(businessId)`
+  - `getBusinessReviewStats(businessId)`
+
+### Yangi hooklar (hooks/)
+
+- `shadcn-admin/src/hooks/booking.tsx`
+  - `useGetBusinessBookings`, `useConfirmBooking`, `useCompleteBooking`, `useCancelBooking`
+- `shadcn-admin/src/hooks/working-hours.tsx`
+  - `useGetBusinessWorkingHours`, `useCreateBusinessWorkingHours`, `useUpdateBusinessWorkingHours`, `useDeleteBusinessWorkingHours`
+- `shadcn-admin/src/hooks/review.tsx`
+  - `useGetBusinessReviews`, `useGetBusinessReviewStats`
+
+### Yangi komponentlar (components/business/)
+
+- `shadcn-admin/src/components/business/bookings.tsx`
+  - Status bo'yicha filter (PENDING / CONFIRMED / COMPLETED / CANCELLED)
+  - Statistika kartalar
+  - Booking jadvali: mijoz, stol, itemlar soni, jami narx, status, sana
+  - Dropdown actions: tasdiqlash, yakunlash, bekor qilish
+  - Detail modal: barcha xizmatlar va narxlar
+- `shadcn-admin/src/components/business/working-hours.tsx`
+  - Har bir hafta kuni uchun ish vaqtlari ko'rsatiladi
+  - Inline tahrirlash (vaqt va faollik holati)
+  - Zod + `react-hook-form` bilan yangi vaqt qo'shish modal
+- `shadcn-admin/src/components/business/reviews.tsx`
+  - O'rtacha reyting, jami sharhlar, taqsimot statistikasi
+  - Sharhlar ro'yxati: yulduzlar, izoh, sana
+
+### Yangi routelar (routes/_authenticated/business/)
+
+- `shadcn-admin/src/routes/_authenticated/business/bookings.tsx` → `/business/bookings`
+- `shadcn-admin/src/routes/_authenticated/business/working-hours.tsx` → `/business/working-hours`
+- `shadcn-admin/src/routes/_authenticated/business/reviews.tsx` → `/business/reviews`
+
+### Sidebar yangilandi
+
+- `shadcn-admin/src/components/layout/data/sidebar-business-data.ts`
+  - **Bookinglar** (`BookOpen` icon) → `/business/bookings`
+  - **Ish vaqtlari** (`Clock` icon) → `/business/working-hours`
+  - **Sharhlar** (`Star` icon) → `/business/reviews`
+
+### routeTree.gen.ts yangilandi
+
+`npx @tanstack/router-cli generate` orqali yangi routelar avtomatik ro'yxatga olindi.
+
+## Tekshiruv
+
+- `npx tsc --noEmit` — 0 xato
+
+## Yakuniy holat
+
+- Business panel endi to'liq API bilan ulangan: Staff, Service, Table, **Booking**, **Working Hours**, **Reviews**
+- Barcha formalar Zod schema + `react-hook-form` + `zodResolver` bilan boshqariladi
+- Frontend `http://localhost:5173` da ishlaydi
+
+---
+
 # 2026-04-09 Kunlik Ishlar Hisoboti
 
 ## Mobile Auth & Navigation
@@ -286,6 +397,15 @@ Qamrab olingan joylar:
 - `mobile/src/components/pages/home/home.tsx`
 
 ## 17:39 – Mobile Tab Tartib Tuzatishi va Login Keyboard Animatsiya
+
+## 2026-05-16 — MultiServiceModal improvements
+
+- Qo'shildi: `MultiServiceModal` har bir qo'shilgan service name uchun draft (`ServiceDraft`) saqlaydi (name, description, duration, price, photoFile, photoName va boshqalar).
+- Qo'shildi: Har bir draft uchun inline maydonlar — `Description`, `Duration`, `Price` va `Photo` (item ostida fayl nomi ko'rsatiladi).
+- O'zgartirildi: Top-level `Photo` inputi `ref` orqali boshqariladi va `Add` yoki `Cancel` bosilganda tozalanadi.
+- Tuzatildi: oldingi `names` holati olib tashlandi; itemlar `items` massivida saqlanadi.
+- Xulosa: `Create Services` bosilganda barcha draftlar bo'yicha FormData yaratiladi va serverga yuboriladi; muvaffaqiyat va xatolik toast'lari qo'shildi.
+
 
 - **Asosiy muammo aniqlandi:** `sidebar-client.tsx` da `Profile` birinchi tab sifatida turgan, shuning uchun Expo Router `(tab)` guruhini yuklanganda darhol `profile` ekranini render qilgan va u auth tekshiruvini ishga tushirib login'ga yo'naltirgan.
 - **Tuzatish:** `sidebarUseClient` massividagi tab tartibini qayta tashkil qilindi: `Home → Booking → Archive → Progress → Profile`. Endi birinchi tab `Home` bo'lib darhol ko'rinadi.

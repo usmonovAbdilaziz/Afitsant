@@ -58,7 +58,6 @@ async function main() {
         description: 'Modern dental clinic with latest equipment',
       },
     },
-    // Admin user
     {
       email: process.env.SEED_ADMIN_EMAIL || 'admin@test.com',
       password: process.env.SEED_ADMIN_PASSWORD || 'Admin123',
@@ -140,70 +139,56 @@ async function main() {
       continue;
     }
 
-    // type ServiceData = {
-    //   name: string;
-    //   description: string;
-    //   duration: number;
-    //   price: number;
-    // };
+    // Generate seed services: 5 per Category (FOODS, DRINKS, SWEETS, SALADS)
+    const categories = ['FOODS', 'DRINKS', 'SWEETS', 'SALADS'] as const;
 
-    // let services: ServiceData[] = [];
+    const generatedServices: any[] = [];
 
-    // if (business.businessType === 'barbershop') {
-    //   services = [
-    //     {
-    //       name: 'Haircut',
-    //       description: 'Professional haircut with styling',
-    //       duration: 30,
-    //       price: 50000,
-    //     },
-    //     {
-    //       name: 'Beard Trim',
-    //       description: 'Beard trimming and shaping',
-    //       duration: 20,
-    //       price: 30000,
-    //     },
-    //     {
-    //       name: 'Hair + Beard',
-    //       description: 'Complete haircut and beard service',
-    //       duration: 45,
-    //       price: 70000,
-    //     },
-    //   ];
-    // } else if (business.businessType === 'stomatology') {
-    //   services = [
-    //     {
-    //       name: 'Consultation',
-    //       description: 'Initial dental consultation and examination',
-    //       duration: 30,
-    //       price: 100000,
-    //     },
-    //     {
-    //       name: 'Teeth Cleaning',
-    //       description: 'Professional teeth cleaning',
-    //       duration: 45,
-    //       price: 200000,
-    //     },
-    //     {
-    //       name: 'Filling',
-    //       description: 'Dental filling treatment',
-    //       duration: 60,
-    //       price: 300000,
-    //     },
-    //   ];
-    // }
+    for (const category of categories) {
+      for (let i = 1; i <= 5; i++) {
+        const baseName = `${category.toString().toLowerCase()}-service-${i}`;
+        const name = `${business.businessName} ${baseName}`;
+        const description = `Sample ${category} service ${i} for ${business.businessName}`;
+        // vary duration and price slightly per index
+        const duration = 15 + i * 5;
+        const price = 10000 + i * 5000;
+        const isDrink = category === 'DRINKS';
 
-    // if (services.length > 0) {
-    //   await prisma.service.createMany({
-    //     data: services.map((service) => ({
-    //       ...service,
-    //       businessId: business.id,
-    //     })),
-    //   });
-    //   console.log(
-    //     `✅ Created ${services.length} services for ${business.businessName}`,
-    //   );
-    // }
+        const serviceData: any = {
+          businessId: business.id,
+          name,
+          category,
+          type: i % 2 === 0 ? 'COLD' : 'HOT',
+          description,
+          duration,
+          price,
+          isActive: true,
+          liters: isDrink ? ['0.5', '1'] : [],
+          photoUrl: null,
+        };
+
+        generatedServices.push(serviceData);
+      }
+    }
+
+    if (generatedServices.length > 0) {
+      // prisma.createMany does not support enums as plain strings in some setups, but here it should work.
+      try {
+        await prisma.service.createMany({ data: generatedServices });
+        console.log(
+          `✅ Created ${generatedServices.length} services for ${business.businessName}`,
+        );
+      } catch (e) {
+        // fallback: create one-by-one if createMany fails
+        console.warn('createMany failed, falling back to create loop', e);
+        for (const s of generatedServices) {
+          await prisma.service.create({ data: s });
+        }
+        console.log(
+          `✅ Created ${generatedServices.length} services (fallback) for ${business.businessName}`,
+        );
+      }
+    }
   }
 
   console.log('✅ Database seeding completed!');

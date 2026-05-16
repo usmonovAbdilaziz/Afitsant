@@ -2,11 +2,11 @@ import React, { forwardRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Pressable,
-  StyleSheet,
   TextInput,
   type TextInputProps,
   View,
 } from "react-native";
+import { cn } from "@/lib/utils";
 
 type InputProps = TextInputProps & {
   hasError?: boolean;
@@ -14,17 +14,18 @@ type InputProps = TextInputProps & {
 };
 
 const Input = forwardRef<TextInput, InputProps>(function Input(
-  { hasError, isPassword, style, ...props },
+  { hasError, isPassword, className, ...props },
   ref
 ) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <View
-      style={[
-        styles.wrapper,
-        hasError ? styles.wrapperError : styles.wrapperDefault,
-      ]}
+      className={cn(
+        "flex-row items-center border rounded-lg px-4 py-3 bg-white",
+        hasError ? "border-red-500" : "border-slate-300",
+        className
+      )}
     >
       <TextInput
         ref={ref}
@@ -34,14 +35,14 @@ const Input = forwardRef<TextInput, InputProps>(function Input(
         secureTextEntry={!!isPassword && !showPassword}
         selectionColor="#0284c7"
         spellCheck={false}
-        style={[styles.input, style]}
+        className="flex-1 text-base text-slate-900"
         {...props}
       />
       {isPassword && (
         <Pressable
           hitSlop={8}
           onPress={() => setShowPassword((prev) => !prev)}
-          style={styles.toggle}
+          className="pl-2"
         >
           <Ionicons
             name={showPassword ? "eye" : "eye-off"}
@@ -54,33 +55,4 @@ const Input = forwardRef<TextInput, InputProps>(function Input(
   );
 });
 
-export default Input;
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingLeft: 16,
-    paddingRight: 12,
-    minHeight: 54,
-    backgroundColor: "#ffffff",
-  },
-  wrapperDefault: {
-    borderColor: "#d4d4d8",
-  },
-  wrapperError: {
-    borderColor: "#ef4444",
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: "#0f172a",
-    paddingVertical: 12,
-  },
-  toggle: {
-    marginLeft: 8,
-    padding: 4,
-  },
-});
+Input.displayName = "Input";

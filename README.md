@@ -76,4 +76,5 @@ stafflarni abet vaqtida booking qilish imkoniyati bulmasiligi kerak
 run redis 
 ```
 docker run -d -p 6379:6379 --name redis redis
+sudo apt install redis-server -y
 ```

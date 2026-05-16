@@ -168,13 +168,20 @@ const generated = generator.generateComponents() as any;
 const generatedComponents = (generated.components ?? {}) as any;
 
 const existingComponents = (swaggerDocs.components ?? {}) as any;
+const mergeComponentKey = (key: string) => ({
+  ...(existingComponents[key] ?? {}),
+  ...((generatedComponents[key] ?? {}) as Record<string, unknown>),
+});
 swaggerDocs.components = {
   ...existingComponents,
   ...generatedComponents,
-  schemas: {
-    ...(existingComponents['schemas'] ?? {}),
-    ...((generatedComponents['schemas'] ?? {}) as Record<string, unknown>),
-  },
+  schemas: mergeComponentKey('schemas'),
+  parameters: mergeComponentKey('parameters'),
+  responses: mergeComponentKey('responses'),
+  securitySchemes: mergeComponentKey('securitySchemes'),
+  requestBodies: mergeComponentKey('requestBodies'),
+  headers: mergeComponentKey('headers'),
+  examples: mergeComponentKey('examples'),
 };
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 

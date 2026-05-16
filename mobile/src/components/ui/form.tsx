@@ -1,31 +1,41 @@
 import React, { forwardRef } from "react";
 import {
-  StyleSheet,
   Text,
   TextInput,
   type TextInputProps,
   type TextProps,
   View,
 } from "react-native";
+import { cn } from "@/lib/utils";
 
 // ─── Label ───────────────────────────────────────────
 
 type LabelProps = TextProps;
 
-export function Label({ style, ...props }: LabelProps) {
-  return <Text style={[styles.label, style]} {...props} />;
+export function Label({ className, ...props }: LabelProps) {
+  return (
+    <Text
+      className={cn("mb-1 text-sm font-medium text-slate-900", className)}
+      {...props}
+    />
+  );
 }
 
 // ─── FormError ───────────────────────────────────────
 
 type FormErrorProps = {
   message?: string;
+  className?: string;
 };
 
-export function FormError({ message }: FormErrorProps) {
+export function FormError({ message, className }: FormErrorProps) {
   if (!message) return null;
 
-  return <Text style={styles.error}>{message}</Text>;
+  return (
+    <Text className={cn("mt-1 text-sm text-red-500", className)}>
+      {message}
+    </Text>
+  );
 }
 
 // ─── FormField ───────────────────────────────────────
@@ -34,11 +44,12 @@ type FormFieldProps = {
   label?: string;
   error?: string;
   children: React.ReactNode;
+  className?: string;
 };
 
-export function FormField({ label, error, children }: FormFieldProps) {
+export function FormField({ label, error, children, className }: FormFieldProps) {
   return (
-    <View style={styles.field}>
+    <View className={cn("mb-4", className)}>
       {label ? <Label>{label}</Label> : null}
       {children}
       <FormError message={error} />
@@ -53,15 +64,15 @@ type TextAreaProps = TextInputProps & {
 };
 
 export const TextArea = forwardRef<TextInput, TextAreaProps>(function TextArea(
-  { hasError, style, ...props },
+  { hasError, className, ...props },
   ref
 ) {
   return (
     <View
-      style={[
-        styles.textAreaWrapper,
-        hasError ? styles.wrapperError : styles.wrapperDefault,
-      ]}
+      className={cn(
+        "border rounded-lg bg-white overflow-hidden",
+        hasError ? "border-red-500" : "border-slate-300",
+      )}
     >
       <TextInput
         ref={ref}
@@ -72,46 +83,14 @@ export const TextArea = forwardRef<TextInput, TextAreaProps>(function TextArea(
         selectionColor="#0284c7"
         spellCheck
         textAlignVertical="top"
-        style={[styles.textArea, style]}
+        className={cn(
+          "flex-1 px-4 py-3 text-base text-slate-900",
+          className
+        )}
         {...props}
       />
     </View>
   );
 });
 
-// ─── Styles ──────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  label: {
-    marginBottom: 4,
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#27272a",
-  },
-  error: {
-    marginTop: 4,
-    fontSize: 14,
-    color: "#ef4444",
-  },
-  field: {
-    marginBottom: 16,
-  },
-  textAreaWrapper: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-  },
-  wrapperDefault: {
-    borderColor: "#d4d4d8",
-  },
-  wrapperError: {
-    borderColor: "#ef4444",
-  },
-  textArea: {
-    minHeight: 100,
-    fontSize: 16,
-    color: "#0f172a",
-  },
-});
+TextArea.displayName = "TextArea";
